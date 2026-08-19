@@ -1,0 +1,40 @@
+// Efecto de resplandor de Neón para la tarjeta
+.neon-glow-card {
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.2),
+              inset 0 0 10px rgba(0, 240, 255, 0.05);
+  transition: all 0.4s ease-in-out;
+}
+
+// Resplandor del núcleo del dron
+.neon-glow-core {
+  filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.5));
+}
+
+// ANIMACIÓN DE LOS ESCUDOS HOLOGRÁFICOS (Paneles flotantes)
+.cyber-shield-left {
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  
+  // Estado: Bloqueando la visión
+  &.covering {
+    transform: translate(16px, -22px);
+  }
+  
+  // Estado: Desbloqueo parcial para espiar (Mostrar contraseña)
+  &.peeking {
+    transform: translate(6px, -5px);
+  }
+}
+
+.cyber-shield-right {
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  
+  // Estado: Bloqueando la visión (fijo)
+  &.covering {
+    transform: translate(-16px, -22px);
+  }
+}
+
+// Suavizado general
+.transition-all-custom {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}

@@ -1,0 +1,210 @@
+
+<div class="h-[calc(100vh-4rem)] text-gray-200 flex flex-col overflow-hidden p-4 gap-4" [class.hidden]="printMode !== null">
+  <!-- Cabecera de la App -->
+  <header class="flex justify-between items-center bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-md shrink-0">
+    <div>
+      <h1 class="text-2xl font-bold text-white">Registro de Incidentes</h1>
+      <p class="text-xs text-gray-400">Gestión de Mesa de Ayuda</p>
+    </div>
+    
+    <!-- Botones de la Cabecera -->
+    <div class="flex gap-3">
+      <!-- Botón de Lotes siempre visible en la cabecera -->
+      <button (click)="imprimirLote()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2">
+        🖨️ Imprimir Lotes
+      </button>
+      <button (click)="openModal()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2">
+        Nuevo Ticket
+      </button>
+    </div>
+  </header>
+
+  <!-- 3 Columnas -->
+  <div class="flex gap-4 flex-1 min-h-0">
+    
+    <!-- PANEL 1: Filtros -->
+    <div class="w-64 bg-gray-900 border border-gray-800 rounded-xl flex flex-col shrink-0">
+      <div class="p-4 border-b border-gray-800 font-semibold text-gray-300">Estados</div>
+      <div class="p-2 space-y-1">
+        <button (click)="applyFilter('Todos')" [class.bg-gray-800]="currentFilter === 'Todos'" class="w-full text-left px-4 py-2 rounded text-sm text-gray-400 hover:text-white flex justify-between">
+          Todos <span>{{ tickets.length }}</span>
+        </button>
+        <button (click)="applyFilter('Abierto')" [class.bg-gray-800]="currentFilter === 'Abierto'" class="w-full text-left px-4 py-2 rounded text-sm text-emerald-400">
+          Abiertos
+        </button>
+        <button (click)="applyFilter('EnProceso')" [class.bg-gray-800]="currentFilter === 'EnProceso'" class="w-full text-left px-4 py-2 rounded text-sm text-amber-400">
+          En Proceso
+        </button>
+        <button (click)="applyFilter('Cerrado')" [class.bg-gray-800]="currentFilter === 'Cerrado'" class="w-full text-left px-4 py-2 rounded text-sm text-gray-500">
+          Cerrados
+        </button>
+      </div>
+    </div>
+
+    <!-- PANEL 2: Bandeja -->
+    <div class="flex-1 bg-gray-900 border border-gray-800 rounded-xl flex flex-col min-w-[300px]">
+      <div class="p-4 border-b border-gray-800 font-semibold text-gray-300 flex justify-between items-center">
+        <span>Bandeja ({{ filteredTickets.length }})</span>
+        
+        <!-- BOTÓN DE IMPRESIÓN MASIVA (Solo aparece si filtras por Cerrados) -->
+        <button *ngIf="currentFilter === 'Cerrado' && filteredTickets.length > 0" (click)="imprimirLote()" class="text-xs bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded flex items-center gap-2">
+          🖨️ Imprimir Lote
+        </button>
+      </div>
+      
+      <div class="flex-1 overflow-y-auto p-3 space-y-3">
+        <div *ngFor="let ticket of filteredTickets" (click)="selectTicket(ticket)" [class.border-cyan-500]="selectedTicket?.id === ticket.id" class="p-4 rounded-lg bg-gray-800 border border-gray-700 cursor-pointer transition-colors">
+          <div class="flex justify-between items-start mb-2">
+            <span class="text-cyan-400 text-xs font-bold">#{{ ticket.id }}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded uppercase text-gray-400 font-semibold">{{ ticket.status }}</span>
+          </div>
+          <h3 class="text-white text-sm font-medium mb-1 line-clamp-2">{{ ticket.solicita }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL 3: Detalle -->
+    <div class="w-[450px] bg-gray-900 border border-gray-800 rounded-xl flex flex-col shrink-0">
+      <div *ngIf="!selectedTicket" class="flex-1 flex items-center justify-center text-gray-500 p-8 text-center text-sm">
+        Selecciona un ticket para ver sus detalles.
+      </div>
+      
+      <ng-container *ngIf="selectedTicket">
+        <div class="p-4 border-b border-gray-800">
+          <h2 class="text-lg font-bold text-white">Detalle #{{ selectedTicket.id }}</h2>
+        </div>
+        <div class="flex-1 overflow-y-auto p-5 space-y-6">
+          <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+            <div class="grid grid-cols-2 mb-4">
+              <div>
+                <p class="text-[10px] text-gray-500 uppercase tracking-wider">Solicitante</p>
+                <p class="text-sm text-gray-200">{{ selectedTicket.nombreUsuario }}</p>
+              </div>
+              <div>
+                <p class="text-[10px] text-gray-500 uppercase tracking-wider">Área</p>
+                <p class="text-sm text-gray-200">{{ selectedTicket.area }}</p>
+              </div>
+            </div>
+            <div>
+              <p class="text-[10px] text-gray-500 uppercase tracking-wider">Solicita</p>
+              <p class="text-sm text-gray-200">{{ selectedTicket.solicita }}</p>
+            </div>
+          </div>
+
+          <!-- Acciones según estado -->
+          <div *ngIf="selectedTicket.status === 'Abierto'" class="text-center">
+            <button (click)="marcarAtencion()" class="bg-amber-600 hover:bg-amber-500 text-white px-6 py-3 rounded-lg w-full font-medium transition-colors">
+              Tomar Ticket (Marcar Atención)
+            </button>
+          </div>
+
+          <div *ngIf="selectedTicket.status === 'EnProceso'" class="space-y-4">
+            <h3 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider">Trabajo Técnico</h3>
+            <textarea [(ngModel)]="cierreData.actividadesRealizadas" rows="4" placeholder="Actividades (Usa guiones o números para enlistar)..." class="w-full bg-gray-800 border border-gray-700 focus:border-cyan-500 rounded p-3 text-sm text-white outline-none"></textarea>
+            <textarea [(ngModel)]="cierreData.observaciones" rows="2" placeholder="Observaciones..." class="w-full bg-gray-800 border border-gray-700 focus:border-cyan-500 rounded p-3 text-sm text-white outline-none"></textarea>
+            <button (click)="guardarCierre()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-3 rounded-lg w-full font-medium transition-colors">
+              Finalizar y Cerrar
+            </button>
+          </div>
+
+          <div *ngIf="selectedTicket.status === 'Cerrado'" class="space-y-4">
+            <div class="bg-gray-800 rounded p-4 border border-gray-700">
+              <h4 class="text-xs text-cyan-400 font-bold mb-2 uppercase tracking-wider">Actividades Realizadas</h4>
+              <p class="text-sm text-gray-300 whitespace-pre-wrap">{{ selectedTicket.actividadesRealizadas }}</p>
+            </div>
+            <!-- BOTÓN DE IMPRESIÓN INDIVIDUAL -->
+            <button (click)="imprimirIndividual()" class="w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2">
+              🖨️ Imprimir Formato Individual
+            </button>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Modal Nuevo Incidente -->
+  <div *ngIf="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-lg p-6 space-y-4">
+      <h3 class="text-xl font-bold text-white mb-2">Nuevo Incidente</h3>
+      <input type="text" [(ngModel)]="nuevoTicket.nombreUsuario" placeholder="Usuario" class="w-full bg-gray-800 border border-gray-700 focus:border-cyan-500 outline-none rounded p-3 text-white">
+      <input type="text" [(ngModel)]="nuevoTicket.area" placeholder="Área" class="w-full bg-gray-800 border border-gray-700 focus:border-cyan-500 outline-none rounded p-3 text-white">
+      <textarea [(ngModel)]="nuevoTicket.solicita" rows="4" placeholder="Solicita..." class="w-full bg-gray-800 border border-gray-700 focus:border-cyan-500 outline-none rounded p-3 text-white"></textarea>
+      <input type="file" (change)="onFileSelected($event)" class="text-sm text-gray-400 w-full mb-4 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-600 file:text-white hover:file:bg-cyan-500 cursor-pointer">
+      <div class="flex justify-end gap-3 mt-4">
+        <button (click)="closeModal()" class="px-5 py-2 text-sm text-gray-300 border border-gray-600 hover:bg-gray-800 rounded-lg transition-colors">Cancelar</button>
+        <button (click)="crearTicket()" [disabled]="isSubmitting" class="px-5 py-2 text-sm text-white bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 rounded-lg transition-colors">Generar Reporte</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- ZONA DE IMPRESIÓN (Totalmente oculta en web) -->
+<!-- ========================================== -->
+<div id="zona-impresion" *ngIf="printMode" class="fixed inset-0 z-[99999] w-full min-h-screen bg-white text-black p-10 font-sans overflow-y-auto print:static print:p-0 print:overflow-visible print:block">
+  
+  <!-- DISEÑO 1: IMPRESIÓN INDIVIDUAL -->
+  <div *ngIf="printMode === 'single' && selectedTicket" class="w-full max-w-[800px] mx-auto p-4 text-[12px] print:p-0">
+    
+    <!-- Cabecera de la tabla -->
+    <table class="w-full border-collapse border border-black mb-0">
+      <tr>
+        <td class="w-[25%] border border-black text-center p-2 align-middle">
+          <img src="assets/logo.png" alt="Logo" class="h-12 mx-auto mb-1">
+        </td>
+        <td class="w-[50%] border border-black text-center align-middle font-bold text-[14px]">
+          INSTRUCTIVO DE REPORTE Y<br>ATENCIÓN DE INCIDENTES<br>INFORMÁTICOS
+        </td>
+        <td class="w-[25%] border border-black align-middle p-0">
+          <div class="px-2 py-1 border-b border-black">Código: MRS-TCRA-FO-01</div>
+          <div class="px-2 py-1 border-b border-black">Versión: 1.0</div>
+          <div class="px-2 py-1">Fecha: 01/03/2026</div>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" class="border border-black text-center font-bold bg-gray-100 py-1 tracking-wide">
+          REGISTRO DE INCIDENTES INFORMÁTICOS
+        </td>
+        <td class="border border-black text-right font-bold pr-2 bg-gray-100">S/23</td>
+      </tr>
+    </table>
+
+    <!-- Bloque de Datos Generales -->
+    <table class="w-full border-collapse border border-black border-t-0 mb-0">
+      <tr>
+        <td class="p-2 border-r border-black w-[35%]"><b>Usuario:</b> {{ selectedTicket.nombreUsuario }}</td>
+        <td class="p-2 border-r border-black w-[35%]"><b>Área:</b> {{ selectedTicket.area }}</td>
+        <td class="p-2 w-[30%] relative">
+          <b>Fecha:</b> {{ selectedTicket.fechaReporte | date:'dd/MM/yyyy' }}
+          <div class="absolute right-2 top-1.5 border border-black px-3 py-1 font-bold text-lg">{{ selectedTicket.id }}</div>
+        </td>
+      </tr>
+      <tr class="border-t border-black">
+        <td class="p-2 border-r border-black"><b>Hora reporte:</b> {{ selectedTicket.fechaReporte | date:'HH:mm' }}</td>
+        <td class="p-2 border-r border-black"><b>Hora atención:</b> {{ selectedTicket.horaAtencion | date:'HH:mm' }}</td>
+        <td class="p-2"><b>Hora cierre:</b> {{ selectedTicket.horaCierre | date:'HH:mm' }}</td>
+      </tr>
+      <tr class="border-t border-black">
+        <td colspan="3" class="p-2 pb-4"><b>Solicita:</b> {{ selectedTicket.solicita }}</td>
+      </tr>
+    </table>
+
+    <!-- Bloque de Actividades -->
+    <div class="border border-black border-t-0 p-2 min-h-[300px]">
+      <b>Actividades realizadas:</b>
+      <p class="mt-2 ml-4 whitespace-pre-wrap leading-relaxed">{{ selectedTicket.actividadesRealizadas }}</p>
+    </div>
+
+    <!-- Bloque Inferior: Observaciones y Firma -->
+    <table class="w-full border-collapse border border-black border-t-0">
+      <tr>
+        <td class="w-[70%] border-r border-black p-2 align-top h-[120px]">
+          <b>Observaciones:</b> {{ selectedTicket.observaciones || 'Ninguna.' }}
+        </td>
+        <td class="w-[30%] p-2">
+          <b>Firma:</b>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>

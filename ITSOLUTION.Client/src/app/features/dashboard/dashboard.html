@@ -1,0 +1,86 @@
+<!-- PANTALLA DE CARGA (Se muestra solo si isLoading es true) -->
+<div *ngIf="isLoading" class="flex flex-col items-center justify-center h-full min-h-[70vh]">
+  <!-- Puedes mantener tu spinner original aquí, este es un ejemplo básico -->
+  <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-cyan-500 mb-4"></div>
+  <p class="text-cyan-500 font-mono tracking-widest text-sm">ESTABLISHING CONNECTION TO CORE...</p>
+</div>
+
+<!-- CONTENIDO DEL DASHBOARD (Se muestra solo si isLoading es false y hay datos) -->
+<div *ngIf="!isLoading && dashboardData" class="p-6 text-gray-200">
+  
+  <header class="mb-8">
+    <h1 class="text-3xl font-bold text-white">Dashboard Principal</h1>
+    <p class="text-gray-400 mt-1">Resumen del estado del sistema</p>
+  </header>
+
+  <!-- SECCIÓN 1: Tarjetas de KPIs -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    
+    <!-- Tarjeta 1: Uptime -->
+    <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl shadow-lg">
+      <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">System Uptime</h3>
+      <p class="text-3xl font-bold text-emerald-400">{{ dashboardData.kpis.systemUptime }}</p>
+    </div>
+
+    <!-- Tarjeta 2: Tickets -->
+    <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl shadow-lg">
+      <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Active Tickets</h3>
+      <p class="text-3xl font-bold text-cyan-400">{{ dashboardData.kpis.activeTickets }}</p>
+    </div>
+
+    <!-- Tarjeta 3: Alertas de Seguridad -->
+    <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl shadow-lg">
+      <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Security Alerts</h3>
+      <p class="text-3xl font-bold text-red-500">{{ dashboardData.kpis.securityAlerts }}</p>
+    </div>
+
+    <!-- Tarjeta 4: Actualizaciones Pendientes -->
+    <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl shadow-lg">
+      <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Pending Updates</h3>
+      <p class="text-3xl font-bold text-amber-400">{{ dashboardData.kpis.pendingUpdates }}</p>
+    </div>
+
+  </div>
+
+  <!-- SECCIÓN 2: Tabla de Alertas Recientes -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl shadow-lg overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-800">
+      <h2 class="text-xl font-semibold text-white">Alertas Recientes</h2>
+    </div>
+    
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-800/50 text-gray-400 text-sm uppercase tracking-wider">
+            <th class="px-6 py-4 font-medium">ID</th>
+            <th class="px-6 py-4 font-medium">Tipo</th>
+            <th class="px-6 py-4 font-medium">Mensaje</th>
+            <th class="px-6 py-4 font-medium">Tiempo</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-800">
+          
+          <!-- Directiva *ngFor para iterar sobre el arreglo de alertas de C# -->
+          <tr *ngFor="let alert of dashboardData.recentAlerts" class="hover:bg-gray-800/30 transition-colors">
+            <td class="px-6 py-4 font-mono text-sm text-gray-300">{{ alert.id }}</td>
+            <td class="px-6 py-4">
+              <!-- Clases dinámicas dependiendo del tipo de alerta -->
+              <span class="px-3 py-1 rounded-full text-xs font-semibold"
+                    [ngClass]="{
+                      'bg-red-500/10 text-red-500 border border-red-500/20': alert.type === 'Critical',
+                      'bg-amber-500/10 text-amber-500 border border-amber-500/20': alert.type === 'Warning',
+                      'bg-cyan-500/10 text-cyan-500 border border-cyan-500/20': alert.type === 'Info'
+                    }">
+                {{ alert.type }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-gray-300">{{ alert.message }}</td>
+            <td class="px-6 py-4 text-sm text-gray-500">{{ alert.time }}</td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

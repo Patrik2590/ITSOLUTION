@@ -1,0 +1,139 @@
+<div class="min-h-screen flex flex-col items-center justify-center p-4 transition-all-custom select-none"
+     [ngClass]="isDarkMode ? 'bg-[#06090F]' : 'bg-gray-100'"
+     [style.backgroundImage]="isDarkMode ? 'radial-gradient(circle at center, #0F1724 0%, #06090F 100%)' : 'none'">
+    
+    <!-- Interruptor de Modo Claro / Oscuro -->
+    <div class="absolute top-4 right-4">
+      <button (click)="toggleDarkMode()" 
+              class="p-3 rounded-full shadow-lg border transition-all duration-300 backdrop-blur-md"
+              [ngClass]="isDarkMode ? 'bg-[#111824]/80 text-cyan-400 border-cyan-500/30' : 'bg-white text-gray-700 border-gray-200'">
+          <i class="pi" [ngClass]="isDarkMode ? 'pi-sun' : 'pi-moon'"></i>
+      </button>
+    </div>
+
+    <!-- NÚCLEO IA CORPORATIVO (SVG PROFESIONAL) -->
+    <div class="w-48 h-48 mb-[-20px] z-10 relative neon-glow-core">
+        <svg viewBox="0 0 100 100" class="w-full h-full">
+            
+            <!-- Anillos de escaneo biométrico trasero -->
+            <circle cx="50" cy="50" r="38" class="fill-transparent stroke-cyan-500/20 stroke-[1px]" />
+            <circle cx="50" cy="50" r="34" class="fill-transparent stroke-cyan-400/30 stroke-[1px] border-dashed" stroke-dasharray="2 4" />
+            <circle cx="50" cy="50" r="30" class="fill-transparent stroke-cyan-400/10 stroke-[4px]" />
+
+            <!-- CHASIS PRINCIPAL DEL DRON -->
+            <path d="M 35 25 C 50 15, 50 15, 65 25 L 70 50 C 70 65, 60 75, 50 80 C 40 75, 30 65, 30 50 Z" 
+                  [ngClass]="isDarkMode ? 'fill-[#121A27]' : 'fill-slate-200'" 
+                  class="stroke-[#06090f] stroke-[2]" />
+            
+            <!-- Detalles de ensamblaje (Líneas tecnológicas) -->
+            <path d="M 35 25 L 50 35 L 65 25" stroke="#334155" stroke-width="1.5" fill="none" />
+            <path d="M 50 35 L 50 80" stroke="#334155" stroke-width="1.5" fill="none" />
+
+            <!-- VISOR ÓPTICO CENTRAL -->
+            <rect x="34" y="42" width="32" height="12" rx="4" class="fill-[#04060A] stroke-cyan-500/50 stroke-[1.5]" />
+
+            <!-- SENSORES LED (OJOS) -->
+            <!-- Sensor Izquierdo: Prende si NO está en password, O si está en password pero mostrando -->
+            <g *ngIf="!isPasswordFocused || showPassword">
+                <rect x="38" y="46" width="8" height="4" rx="2" class="fill-cyan-400 drop-shadow-[0_0_6px_rgba(0,242,255,1)]" />
+            </g>
+            <!-- Sensor Derecho: Prende solo si NO está en password -->
+            <g *ngIf="!isPasswordFocused">
+                <rect x="54" y="46" width="8" height="4" rx="2" class="fill-cyan-400 drop-shadow-[0_0_6px_rgba(0,242,255,1)]" />
+            </g>
+
+            <!-- Modo Seguro Activado (Línea de bloqueo) -->
+            <path *ngIf="isPasswordFocused && !showPassword" d="M 38 48 L 46 48" stroke="#00f0ff" stroke-width="1" class="opacity-30" />
+            <path *ngIf="isPasswordFocused" d="M 54 48 L 62 48" stroke="#00f0ff" stroke-width="1" class="opacity-30" />
+
+            <!-- ESCUDO HOLOGRÁFICO IZQUIERDO (Panel flotante) -->
+            <g class="cyber-shield-left" 
+               [ngClass]="{'covering': isPasswordFocused && !showPassword, 'peeking': isPasswordFocused && showPassword}">
+                <path d="M 20 70 L 32 62" stroke="#475569" stroke-width="1.5" stroke-dasharray="2 2" />
+                <polygon points="12,68 28,60 32,68 16,76" class="fill-slate-800 stroke-cyan-400 stroke-[1.5] drop-shadow-[0_0_4px_rgba(0,242,255,0.6)]" />
+                <line x1="18" y1="68" x2="26" y2="64" stroke="#00f0ff" stroke-width="1" class="opacity-50" />
+            </g>
+
+            <!-- ESCUDO HOLOGRÁFICO DERECHO (Panel flotante) -->
+            <g class="cyber-shield-right" [ngClass]="{'covering': isPasswordFocused}">
+                <path d="M 80 70 L 68 62" stroke="#475569" stroke-width="1.5" stroke-dasharray="2 2" />
+                <polygon points="88,68 72,60 68,68 84,76" class="fill-slate-800 stroke-cyan-400 stroke-[1.5] drop-shadow-[0_0_4px_rgba(0,242,255,0.6)]" />
+                <line x1="82" y1="68" x2="74" y2="64" stroke="#00f0ff" stroke-width="1" class="opacity-50" />
+            </g>
+        </svg>
+    </div>
+
+    <!-- TARJETA DE LOGIN CORPORATIVA CYBERPUNK -->
+    <div class="p-8 rounded-xl w-full max-w-sm transition-all-custom border text-center neon-glow-card backdrop-blur-sm"
+         [ngClass]="isDarkMode ? 'bg-[#0F1724]/90 border-cyan-500/50' : 'bg-white border-transparent shadow-2xl'">
+        
+        <!-- Encabezado -->
+        <div class="mb-7">
+            <h2 class="text-2xl font-black tracking-[0.2em] transition-colors duration-300"
+                [ngClass]="isDarkMode ? 'text-white' : 'text-blue-900'">
+                SYSTEM <span class="text-[#00f0ff]">CORE</span>
+            </h2>
+            <p class="text-[10px] font-bold uppercase tracking-[0.15em] mt-2"
+               [ngClass]="isDarkMode ? 'text-cyan-400/80' : 'text-gray-500'">
+                IT Enterprise Protocol
+            </p>
+        </div>
+
+        <!-- Formulario -->
+        <div class="space-y-4 text-left">
+            
+            <!-- Campo Usuario -->
+            <div class="flex flex-col gap-1.5">
+                <label for="username" class="text-[9px] font-black uppercase tracking-widest"
+                       [ngClass]="isDarkMode ? 'text-gray-400' : 'text-gray-600'">Admin ID</label>
+                <!-- Se agregó [(ngModel)] para enlazar el texto -->
+                <input id="username" type="text" autocomplete="off" [(ngModel)]="username"
+                       class="w-full p-3 rounded border font-mono text-sm outline-none transition-all duration-300"
+                       [ngClass]="isDarkMode ? 'bg-[#06090F] text-cyan-50 border-gray-700/50 focus:border-[#00f0ff] focus:bg-[#0A1018]' : 'bg-gray-50 text-gray-900 border-gray-300 focus:border-blue-500'"
+                       placeholder="Enter credentials" />
+            </div>
+
+            <!-- Campo Contraseña -->
+            <div class="flex flex-col gap-1.5">
+                <label for="password" class="text-[9px] font-black uppercase tracking-widest"
+                       [ngClass]="isDarkMode ? 'text-gray-400' : 'text-gray-600'">Security Key</label>
+                <div class="relative w-full flex items-center">
+                    <!-- Se agregó [(ngModel)] para enlazar la contraseña -->
+                    <input id="password" [(ngModel)]="password"
+                           [type]="showPassword ? 'text' : 'password'"
+                           (focus)="isPasswordFocused = true"
+                           (blur)="isPasswordFocused = false"
+                           class="w-full p-3 pr-10 rounded border font-mono text-sm outline-none transition-all duration-300"
+                           [ngClass]="isDarkMode ? 'bg-[#06090F] text-cyan-50 border-gray-700/50 focus:border-[#00f0ff] focus:bg-[#0A1018] focus:shadow-[0_0_12px_rgba(0,240,255,0.1)]' : 'bg-gray-50 text-gray-900 border-gray-300 focus:border-blue-500'"
+                           placeholder="••••••••" />
+                    
+                    <!-- BOTÓN OJO -->
+                    <button type="button" 
+                            (mousedown)="$event.preventDefault()" 
+                            (click)="togglePassword()" 
+                            class="absolute right-3 transition-colors flex items-center"
+                            [ngClass]="isDarkMode ? 'text-gray-500 hover:text-[#00f0ff]' : 'text-gray-400 hover:text-gray-600'">
+                        <i class="pi text-sm" [ngClass]="showPassword ? 'pi-eye-slash' : 'pi-eye'"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Checkbox -->
+            <div class="flex items-center gap-2 pt-2 select-none">
+                <input type="checkbox" id="remember" [(ngModel)]="rememberMe"
+                       class="w-3.5 h-3.5 rounded-sm cursor-pointer accent-cyan-400 bg-[#06090F] border-gray-700" />
+                <label for="remember" class="text-[9px] font-bold uppercase tracking-widest cursor-pointer"
+                       [ngClass]="isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600'">Persist Session</label>
+            </div>
+
+           <!-- Botón Login -->
+            <button type="button" (click)="onLogin()" [disabled]="isLoading"
+                    class="w-full py-4 text-xs font-black tracking-[0.2em] uppercase rounded transition-all duration-300 transform active:scale-[0.98] mt-4 disabled:opacity-50 disabled:cursor-wait"
+                    [ngClass]="isDarkMode ? 'bg-cyan-500 hover:bg-cyan-400 text-[#06090F] shadow-[0_0_15px_rgba(0,240,255,0.3)] hover:shadow-[0_0_25px_rgba(0,240,255,0.6)]' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'">
+                <span *ngIf="!isLoading">INITIALIZE</span>
+                <span *ngIf="isLoading" class="animate-pulse">AUTHENTICATING...</span>
+            </button>
+        </div>
+        
+    </div>
+</div>

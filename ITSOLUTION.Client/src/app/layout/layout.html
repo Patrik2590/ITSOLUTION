@@ -1,0 +1,127 @@
+<div class="h-screen w-full flex overflow-hidden transition-colors duration-300 select-none font-sans"
+     [ngClass]="isDarkMode ? 'bg-[#06090F] text-gray-300' : 'bg-gray-100 text-gray-700'">
+
+    <!-- ==================== SIDEBAR (MENÚ LATERAL) ==================== -->
+    <aside class="flex flex-col h-full transition-all duration-300 border-r z-20"
+           [ngClass]="[
+             isDarkMode ? 'bg-[#0A1018] border-gray-800' : 'bg-white border-gray-200 shadow-lg',
+             isSidebarCollapsed ? 'w-20' : 'w-64'
+           ]">
+        
+        <!-- Logo del ERP -->
+        <div class="h-16 flex items-center justify-center border-b transition-colors"
+             [ngClass]="isDarkMode ? 'border-gray-800' : 'border-gray-200'">
+            <div class="font-black tracking-[0.2em] whitespace-nowrap overflow-hidden transition-all"
+                 [ngClass]="isDarkMode ? 'text-white' : 'text-blue-900'">
+                <span *ngIf="!isSidebarCollapsed">SYS<span class="text-[#00f0ff]">CORE</span></span>
+                <span *ngIf="isSidebarCollapsed" class="text-[#00f0ff]">SC</span>
+            </div>
+        </div>
+
+        <!-- Lista de Menú -->
+        <div class="flex-1 overflow-y-auto py-4 px-3 space-y-6">
+            <div *ngFor="let section of menuItems">
+                <!-- Título de Sección -->
+                <p *ngIf="!isSidebarCollapsed" class="text-[9px] font-bold uppercase tracking-widest px-3 mb-2"
+                   [ngClass]="isDarkMode ? 'text-gray-500' : 'text-gray-400'">
+                    {{ section.section }}
+                </p>
+                <div class="w-full flex justify-center mb-2" *ngIf="isSidebarCollapsed">
+                    <div class="w-4 h-[1px] bg-gray-600"></div>
+                </div>
+
+                <!-- Ítems -->
+                <ul class="space-y-1">
+                    <li *ngFor="let item of section.items">
+                        <button (click)="onMenuClick(item)" 
+                                class="w-full flex items-center p-3 rounded-lg transition-all duration-200 group menu-item-hover"
+                                [ngClass]="isDarkMode ? 'hover:bg-cyan-900/20 hover:text-cyan-400' : 'hover:bg-blue-50 hover:text-blue-600'">
+                            <i class="pi {{ item.icon }} text-lg transition-colors"
+                               [ngClass]="isDarkMode ? 'text-gray-500 group-hover:text-[#00f0ff]' : 'text-gray-400'"></i>
+                            <span *ngIf="!isSidebarCollapsed" class="ml-3 text-xs font-semibold tracking-wide truncate">
+                                {{ item.label }}
+                            </span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
+    <main class="flex-1 flex flex-col h-full min-w-0">
+        
+        <!-- TOPBAR (Header Superior) -->
+        <header class="h-16 flex items-center justify-between px-6 border-b transition-colors"
+                [ngClass]="isDarkMode ? 'bg-[#0A1018] border-gray-800' : 'bg-white border-gray-200 shadow-sm'">
+            
+            <div class="flex items-center gap-4">
+                <!-- Botón colapsar menú -->
+                <button (click)="toggleSidebar()" class="p-2 rounded-lg transition-colors"
+                        [ngClass]="isDarkMode ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-100 text-gray-600'">
+                    <i class="pi pi-bars text-xl"></i>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <!-- Toggle Claro/Oscuro -->
+                <button (click)="toggleDarkMode()" class="p-2 rounded-lg transition-colors"
+                        [ngClass]="isDarkMode ? 'hover:bg-gray-800 text-cyan-400' : 'hover:bg-gray-100 text-gray-600'">
+                    <i class="pi" [ngClass]="isDarkMode ? 'pi-sun' : 'pi-moon'"></i>
+                </button>
+                
+                <!-- Perfil -->
+                <div class="flex items-center gap-3 pl-4 border-l" [ngClass]="isDarkMode ? 'border-gray-800' : 'border-gray-200'">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-xs font-bold" [ngClass]="isDarkMode ? 'text-white' : 'text-gray-800'">Administrador TI</p>
+                        <p class="text-[10px] uppercase tracking-wider" [ngClass]="isDarkMode ? 'text-[#00f0ff]' : 'text-blue-600'">Super Admin</p>
+                    </div>
+                    <div class="w-9 h-9 rounded-full bg-cyan-500 flex items-center justify-center text-[#06090F] font-bold shadow-[0_0_10px_rgba(0,240,255,0.3)]">
+                        A
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- BARRA DE PESTAÑAS (TAB MANAGER) -->
+        <div class="flex items-end px-4 pt-2 border-b overflow-x-auto no-scrollbar"
+             [ngClass]="isDarkMode ? 'bg-[#06090F] border-gray-800' : 'bg-gray-100 border-gray-200'">
+            
+            <div *ngFor="let tab of tabs$ | async" 
+                 (click)="selectTab(tab.id)"
+                 class="group relative flex items-center min-w-[140px] max-w-[200px] px-4 py-2 border-t border-l border-r rounded-t-lg mr-1 cursor-pointer transition-all duration-200"
+                 [ngClass]="{
+                    'tab-active-glow text-[#00f0ff] border-gray-800/50 bg-[#0A1018]': tab.active && isDarkMode,
+                    'text-gray-500 border-transparent hover:bg-gray-800/50': !tab.active && isDarkMode,
+                    'bg-white text-blue-600 border-gray-200 border-b-white': tab.active && !isDarkMode,
+                    'text-gray-500 border-transparent hover:bg-gray-200': !tab.active && !isDarkMode
+                 }">
+                <i class="pi {{ tab.icon }} text-xs mr-2"></i>
+                <span class="text-xs font-semibold truncate flex-1">{{ tab.label }}</span>
+                
+                <!-- Botón Cerrar Pestaña -->
+                <button (click)="closeTab(tab.id, $event)" 
+                        class="ml-2 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        [ngClass]="isDarkMode ? 'hover:bg-gray-700 hover:text-white' : 'hover:bg-gray-200 hover:text-gray-800'">
+                    <i class="pi pi-times text-[10px]"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ÁREA DE TRABAJO (Aquí cargan los componentes) -->
+        <div class="flex-1 overflow-y-auto relative p-6 h-full"
+             [ngClass]="isDarkMode ? 'bg-[#06090F]' : 'bg-gray-50'">
+            
+            <!-- Marca de agua de fondo (decorativo corporativo) -->
+            <div class="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.02] z-0">
+                <i class="pi pi-server text-[25rem]"></i>
+            </div>
+
+            <!-- Router Outlet (El contenido dinámico de Angular) -->
+            <div class="relative z-10 h-full">
+                <router-outlet></router-outlet>
+            </div>
+            
+        </div>
+    </main>
+</div>
