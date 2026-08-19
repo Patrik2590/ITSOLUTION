@@ -1,0 +1,6 @@
+@ITSOLUTION.WebAPI_HostAddress = http://localhost:5248
+
+GET {{ITSOLUTION.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
