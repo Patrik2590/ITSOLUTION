@@ -1,10 +1,12 @@
 import { Routes } from '@angular/router';
 
-// Aquí debes asegurarte de importar correctamente tus componentes según tu estructura
 import { LoginComponent } from './auth/login/login';
 import { LayoutComponent } from './layout/layout';
 import { DashboardComponent } from './features/dashboard/dashboard'; 
-import { TicketsComponent } from './features/tickets/tickets'; // <-- 1. Importamos la nueva pantalla
+import { TicketsComponent } from './features/tickets/tickets'; 
+
+// 🛡️ 1. Importamos el Guardián de Roles
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   // Ruta por defecto: Redirige al Login
@@ -18,12 +20,35 @@ export const routes: Routes = [
     path: '',
     component: LayoutComponent,
     children: [
-      { path: 'dashboard', component: DashboardComponent },
-      { path: 'tickets', component: TicketsComponent }, // <-- 2. Registramos la ruta
-      // Aquí iremos agregando: 'inventory', 'users', etc.
+      { 
+        path: 'dashboard', 
+        component: DashboardComponent,
+        // 🛡️ 2. Protegemos y definimos quién puede entrar
+        canActivate: [roleGuard],
+        data: { roles: ['Administrador TI', 'Técnico Soporte'] }
+      },
+      { 
+        path: 'tickets', 
+        component: TicketsComponent,
+        // 🛡️ 3. Aplicamos lo mismo para tickets
+        canActivate: [roleGuard],
+        data: { roles: ['Administrador TI', 'Técnico Soporte'] }
+      },
+      { 
+         path: 'inventarios', 
+         loadComponent: () => import('./features/activos/activos.component').then(m => m.ActivosComponent) 
+      },
+
+      // 💡 Ejemplo de cómo quedará la ruta de usuarios cuando la crees:
+      // { 
+      //   path: 'users', 
+      //   component: UsersComponent, // (Aún no importado)
+      //   canActivate: [roleGuard],
+      //   data: { roles: ['Administrador TI'] } // <-- ¡BLOQUEO ESTRICTO! Solo el Admin pasará.
+      // }
     ]
   },
   
-  // Ruta comodín para errores 404 (Opcional, redirige al dashboard si está logueado o al login)
+  // Ruta comodín para errores 404
   { path: '**', redirectTo: 'login' }
 ];

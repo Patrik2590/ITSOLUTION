@@ -21,6 +21,7 @@ export interface Ticket {
   actividadesRealizadas?: string;
   observaciones?: string;
   
+  
   // Tipado estricto para evitar errores de "No Overlap" en el HTML
   status?: 'Abierto' | 'EnProceso' | 'Cerrado'; 
   

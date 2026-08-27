@@ -16,7 +16,6 @@ namespace ITSOLUTION.WebAPI.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
 
-        // Ahora inyectamos también la Base de Datos real
         public AuthController(ApplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
@@ -28,6 +27,7 @@ namespace ITSOLUTION.WebAPI.Controllers
         {
             // 1. Buscamos al usuario e INCLUIMOS sus nuevos roles relacionales (Motor RBAC)
             var usuario = await _context.Usuarios
+                .IgnoreQueryFilters()
                 .Include(u => u.UsuariosRoles)
                     .ThenInclude(ur => ur.Rol)
                 .FirstOrDefaultAsync(u => u.Correo == request.Correo && u.Password == request.Password);
@@ -37,6 +37,15 @@ namespace ITSOLUTION.WebAPI.Controllers
 
             if (!usuario.EstaActivo)
                 return Unauthorized(new { message = "El usuario está inactivo. Contacte al administrador." });
+
+            // =========================================================
+            // 🛡️ NUEVO: VALIDACIÓN DE ROLES (Evita el Error 500)
+            // =========================================================
+            if (usuario.UsuariosRoles == null || !usuario.UsuariosRoles.Any())
+            {
+                // Retornamos 403 Forbidden para que Angular lance la alerta amarilla
+                return StatusCode(403, new { message = "Tu cuenta existe, pero no tienes permisos asignados. Contacta al administrador." });
+            }
 
             // 2. Construcción de los Claims básicos
             var claims = new List<Claim>
@@ -50,15 +59,13 @@ namespace ITSOLUTION.WebAPI.Controllers
                 new Claim("SucursalId", usuario.SucursalId.ToString())
             };
 
-            // 3. 🔄 NUEVO: Iteramos sobre los roles dinámicos de la base de datos y los agregamos al Token
-            if (usuario.UsuariosRoles != null && usuario.UsuariosRoles.Any())
+            // 3. Iteramos sobre los roles dinámicos de la base de datos
+            // (Ya no necesitamos comprobar si es null porque lo bloqueamos arriba)
+            foreach (var ur in usuario.UsuariosRoles)
             {
-                foreach (var ur in usuario.UsuariosRoles)
+                if (ur.Rol != null)
                 {
-                    if (ur.Rol != null)
-                    {
-                        claims.Add(new Claim(ClaimTypes.Role, ur.Rol.Nombre));
-                    }
+                    claims.Add(new Claim(ClaimTypes.Role, ur.Rol.Nombre));
                 }
             }
 
@@ -76,13 +83,13 @@ namespace ITSOLUTION.WebAPI.Controllers
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
-            // 5. Devolvemos la respuesta a Angular (Soluciona el error de la línea 73)
+            // 5. Devolvemos la respuesta a Angular
             return Ok(new
             {
                 token = tokenHandler.WriteToken(token),
                 nombre = usuario.NombreCompleto,
-                // Ahora mandamos los roles como una lista (Array) a Angular
-                roles = usuario.UsuariosRoles?.Select(ur => ur.Rol.Nombre).ToList() ?? new List<string>()
+                // Optimizamos esto: ya sabemos que la lista de roles tiene datos
+                roles = usuario.UsuariosRoles.Select(ur => ur.Rol.Nombre).ToList()
             });
         }
     }

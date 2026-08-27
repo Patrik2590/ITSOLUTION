@@ -40,6 +40,7 @@ export class LoginComponent {
   }
 
   // Conexión real con la API en .NET
+  // Conexión real con la API en .NET
   onLogin() {
     if (!this.username || !this.password) {
       this.notification.toast('warning', 'Ingrese su Admin ID y Security Key');
@@ -51,6 +52,7 @@ export class LoginComponent {
     // Llamamos a tu AuthController
     this.authService.login(this.username, this.password).subscribe({
       next: (res) => {
+        // ✅ ÉXITO
         this.isLoading = false;
         this.notification.toast('success', `Acceso concedido, ${res.nombre}`);
         
@@ -58,8 +60,24 @@ export class LoginComponent {
         this.router.navigate(['/tickets']); 
       },
       error: (err) => {
-        this.isLoading = false;
-        this.notification.toast('error', 'Credenciales inválidas o acceso denegado');
+        // ❌ ERROR CAPTURADO (¡Evita que se quede pensando infinitamente!)
+        this.isLoading = false; 
+        
+        // 🛡️ Filtramos el tipo de error usando TU servicio de notificaciones
+        if (err.status === 0) {
+          this.notification.toast('error', 'No hay conexión con el servidor. Verifica tu internet.');
+        } else if (err.status === 401) {
+          this.notification.toast('error', 'Correo o contraseña incorrectos.');
+        } else if (err.status === 403) {
+          this.notification.toast('warning', 'Tu cuenta no tiene permisos asignados. Contacta al administrador.');
+        } else if (err.status === 500) {
+          this.notification.toast('error', 'Error interno. Es posible que el usuario no tenga un rol válido en la BD.');
+        } else {
+          // Mensaje por defecto si el backend manda un texto específico
+          const mensaje = err.error?.message || 'Ocurrió un error inesperado. Vuelve a intentar.';
+          this.notification.toast('error', mensaje);
+        }
+
         console.error('Error del sistema CORE:', err);
       }
     });

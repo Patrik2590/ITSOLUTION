@@ -1,0 +1,190 @@
+<div class="h-full flex flex-col animate-fade-in">
+  
+  <!-- ENCABEZADO Y BOTÓN NUEVO -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+        <i class="pi pi-desktop text-[#00f0ff]"></i> Inventario TI
+      </h1>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Gestión de equipos y asignaciones</p>
+    </div>
+    <button (click)="abrirModalNuevo()" 
+            class="bg-blue-600 hover:bg-blue-500 dark:bg-cyan-900 dark:hover:bg-cyan-800 text-white dark:text-cyan-400 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-lg">
+      <i class="pi pi-plus"></i> Nuevo Equipo
+    </button>
+  </div>
+
+  <!-- TABLA DE DATOS -->
+  <div class="bg-white dark:bg-[#0A1018] border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden flex-1">
+    <div class="overflow-x-auto h-full">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-50 dark:bg-[#06090F] text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider border-b border-gray-200 dark:border-gray-800">
+            <th class="p-4 font-semibold">Código</th>
+            <th class="p-4 font-semibold">Categoría</th>
+            <th class="p-4 font-semibold">Marca / Modelo</th>
+            <th class="p-4 font-semibold">Serie</th>
+            <th class="p-4 font-semibold">Asignado A</th>
+            <th class="p-4 font-semibold text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm divide-y divide-gray-200 dark:divide-gray-800 text-gray-700 dark:text-gray-300">
+          <tr *ngFor="let item of activos" class="hover:bg-blue-50 dark:hover:bg-gray-800/50 transition-colors">
+            <td class="p-4 font-mono text-xs font-bold text-blue-600 dark:text-[#00f0ff]">{{ item.codigoInventario }}</td>
+            <td class="p-4">{{ item.categoria }}</td>
+            <td class="p-4 font-semibold">{{ item.marca }} <span class="text-xs text-gray-500 block font-normal">{{ item.modelo }}</span></td>
+            <td class="p-4 font-mono text-xs">{{ item.numeroSerie }}</td>
+            <td class="p-4">{{ item.empleadoNombre || 'Bodega (Sin Asignar)' }}</td>
+            <td class="p-4 flex justify-center gap-2">
+              <button (click)="eliminarActivo(item.id!)" class="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <i class="pi pi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL / FORMULARIO FLOTANTE -->
+  <div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+    <div class="bg-white dark:bg-[#0A1018] border border-gray-200 dark:border-gray-800 w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <!-- Header del Modal -->
+      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-[#06090F]">
+        <h3 class="font-bold text-lg text-gray-800 dark:text-white">Registrar Activo</h3>
+        <button (click)="cerrarModal()" class="text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors">
+          <i class="pi pi-times text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Cuerpo del Formulario -->
+      <div class="p-6 overflow-y-auto custom-scrollbar">
+        <form class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          
+          <!-- SECCIÓN: DATOS GENERALES -->
+          <div class="col-span-1 md:col-span-2">
+            <h4 class="text-xs font-bold text-[#00f0ff] uppercase tracking-wider mb-2 border-b border-gray-700 pb-1">Datos Generales</h4>
+          </div>
+
+          <div class="col-span-1 md:col-span-2">
+            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Código de Inventario <span class="text-red-500">*</span></label>
+            <input type="text" [(ngModel)]="activoForm.codigoInventario" name="codigo" placeholder="Ej: LTPMR001" 
+                   class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:outline-none focus:border-[#00f0ff] focus:ring-1 focus:ring-[#00f0ff] transition-all">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Categoría <span class="text-red-500">*</span></label>
+            <input list="listaCategorias" [(ngModel)]="activoForm.categoria" name="categoria" placeholder="Seleccione o escriba..."
+                   class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:outline-none focus:border-[#00f0ff]">
+            <datalist id="listaCategorias">
+              <option *ngFor="let cat of categorias" [value]="cat"></option>
+            </datalist>
+          </div>
+
+          <!-- NUEVO CAMPO OBLIGATORIO: TIPO DE EQUIPO -->
+          <div>
+            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Tipo de Equipo <span class="text-red-500">*</span></label>
+            <input type="text" [(ngModel)]="activoForm.tipoEquipo" name="tipoEquipo" placeholder="Ej: Computo, Redes, Impresión..."
+                   class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:outline-none focus:border-[#00f0ff]">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Marca <span class="text-red-500">*</span></label>
+            <input list="listaMarcas" [(ngModel)]="activoForm.marca" name="marca" placeholder="Seleccione o escriba..."
+                   class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:outline-none focus:border-[#00f0ff]">
+            <datalist id="listaMarcas">
+              <option *ngFor="let marca of marcas" [value]="marca"></option>
+            </datalist>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Modelo <span class="text-red-500">*</span></label>
+            <input type="text" [(ngModel)]="activoForm.modelo" name="modelo"
+                   class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:outline-none focus:border-[#00f0ff]">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Número de Serie <span class="text-red-500">*</span></label>
+            <input type="text" [(ngModel)]="activoForm.numeroSerie" name="serie"
+                   class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:outline-none focus:border-[#00f0ff]">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Estado Físico <span class="text-red-500">*</span></label>
+            <input list="listaEstados" [(ngModel)]="activoForm.estado" name="estado"
+                   class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:outline-none focus:border-[#00f0ff]">
+            <datalist id="listaEstados">
+              <option *ngFor="let estado of estados" [value]="estado"></option>
+            </datalist>
+          </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Ubicación <span class="text-red-500">*</span></label>
+            <input type="text" [(ngModel)]="activoForm.ubicacion" name="ubicacion" placeholder="Ej: Oficina Marketing"
+                   class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:outline-none focus:border-[#00f0ff]">
+          </div>
+
+          <!-- SECCIÓN: ESPECIFICACIONES TÉCNICAS -->
+          <div class="col-span-1 md:col-span-2 mt-4">
+            <h4 class="text-xs font-bold text-[#00f0ff] uppercase tracking-wider mb-2 border-b border-gray-700 pb-1">Especificaciones y Red</h4>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Procesador</label>
+            <input type="text" [(ngModel)]="activoForm.procesador" name="procesador" placeholder="Ej: Intel Core i7 12th Gen"
+                   class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:outline-none focus:border-[#00f0ff]">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Memoria RAM</label>
+            <input type="text" [(ngModel)]="activoForm.memoriaRam" name="memoriaRam" placeholder="Ej: 16 GB DDR4"
+                   class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:outline-none focus:border-[#00f0ff]">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Almacenamiento</label>
+            <input type="text" [(ngModel)]="activoForm.almacenamiento" name="almacenamiento" placeholder="Ej: 512 GB NVMe"
+                   class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:outline-none focus:border-[#00f0ff]">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Otras Especificaciones</label>
+            <input type="text" [(ngModel)]="activoForm.especificaciones" name="especificaciones" placeholder="Ej: Tarjeta Gráfica, Resolución..."
+                   class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:outline-none focus:border-[#00f0ff]">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Dirección IP</label>
+            <input type="text" [(ngModel)]="activoForm.direccionIP" name="direccionIP" placeholder="Ej: 192.168.1.100"
+                   class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:outline-none focus:border-[#00f0ff]">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Dirección MAC</label>
+            <input type="text" [(ngModel)]="activoForm.direccionMAC" name="direccionMAC" placeholder="Ej: 00:1A:2B:3C:4D:5E"
+                   class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:outline-none focus:border-[#00f0ff]">
+          </div>
+
+          <div class="col-span-1 md:col-span-2">
+            <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Observaciones</label>
+            <textarea [(ngModel)]="activoForm.observaciones" name="observaciones" rows="2" placeholder="Detalles adicionales o estado de entrega..."
+                      class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:outline-none focus:border-[#00f0ff]"></textarea>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Footer del Modal -->
+      <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#06090F] flex justify-end gap-3">
+        <button (click)="cerrarModal()" class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
+          Cancelar
+        </button>
+        <button (click)="guardarActivo()" class="px-4 py-2 rounded-lg text-sm font-semibold bg-[#00f0ff] hover:bg-cyan-400 text-[#06090F] shadow-[0_0_15px_rgba(0,240,255,0.3)] transition-all">
+          Guardar Equipo
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

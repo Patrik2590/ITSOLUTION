@@ -26,6 +26,9 @@ export class TicketsComponent implements OnInit {
   selectedFile: File | null = null;
   cierreData = { actividadesRealizadas: '', observaciones: '' };
 
+  // 👇 URL de tu backend (Asegúrate de cambiar el puerto 7198 al puerto real de tu API de .NET)
+  apiUrl: string = 'https://localhost:7069';
+
   // --- NUEVAS VARIABLES DE IMPRESIÓN ---
   printMode: 'single' | 'batch' | null = null;
   ticketsParaImprimir: Ticket[] = [];
