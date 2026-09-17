@@ -8,6 +8,7 @@ namespace ITSOLUTION.Domain.Entities
         public string Nombre { get; set; } = string.Empty;
         public string Direccion { get; set; } = string.Empty;
         public bool EstaActiva { get; set; } = true;
+        public string Codigo { get; set; } = string.Empty;
 
         // Llave foránea hacia la Empresa (Tenant)
         public Guid TenantId { get; set; }

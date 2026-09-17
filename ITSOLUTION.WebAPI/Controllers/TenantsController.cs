@@ -3,18 +3,21 @@ using ITSOLUTION.Application.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ITSOLUTION.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    // [Authorize] // Descomenta cuando vayas a probar con JWT
     public class TenantsController : ControllerBase
     {
         private readonly ITenantService _tenantService;
         private readonly IValidator<TenantDto> _validator;
 
-        // Inyectamos el servicio y el validador
         public TenantsController(ITenantService tenantService, IValidator<TenantDto> validator)
         {
             _tenantService = tenantService;
@@ -38,11 +41,9 @@ namespace ITSOLUTION.WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<TenantDto>> Create([FromBody] TenantDto tenantDto)
         {
-            // 1. Ejecutar las reglas de validación
             var validationResult = await _validator.ValidateAsync(tenantDto);
             if (!validationResult.IsValid)
             {
-                // Si falla, devolvemos un Error 400 con la lista de mensajes
                 return BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
             }
 
@@ -50,10 +51,53 @@ namespace ITSOLUTION.WebAPI.Controllers
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
+        // --- ENDPOINT PARA ESTRUCTURA COMPLETA CON INNER EXCEPTION CAPTURADA ---
+        [HttpPost("Complete")]
+        public async Task<ActionResult<TenantDto>> CreateComplete([FromBody] CreateTenantCompleteDto request)
+        {
+            try
+            {
+                var created = await _tenantService.CreateTenantWithDetailsAsync(request);
+                return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            }
+            catch (Exception ex)
+            {
+                // Extrae el mensaje interno real de SQL Server / Entity Framework
+                var errorReal = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+
+                return StatusCode(500, new
+                {
+                    message = "Ocurrió un error al guardar la empresa.",
+                    details = errorReal
+                });
+            }
+        }
+
+        [HttpPut("Complete/{id}")]
+        public async Task<ActionResult<TenantDto>> UpdateComplete(Guid id, [FromBody] CreateTenantCompleteDto request)
+        {
+            try
+            {
+                var updatedTenant = await _tenantService.UpdateTenantWithDetailsAsync(id, request);
+                return Ok(updatedTenant);
+            }
+            catch (Exception ex)
+            {
+                // Obtenemos el mensaje de error real para mostrarlo en el frontend
+                var errorReal = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+
+                return StatusCode(500, new
+                {
+                    message = "Ocurrió un error al actualizar la empresa.",
+                    details = errorReal
+                });
+            }
+        }
+
+
         [HttpPut("{id}")]
         public async Task<ActionResult<TenantDto>> Update(Guid id, [FromBody] TenantDto tenantDto)
         {
-            // Validamos también al actualizar
             var validationResult = await _validator.ValidateAsync(tenantDto);
             if (!validationResult.IsValid)
             {
@@ -72,7 +116,7 @@ namespace ITSOLUTION.WebAPI.Controllers
             var success = await _tenantService.DeactivateTenantAsync(id);
             if (!success) return NotFound("Empresa no encontrada.");
 
-            return Ok("Empresa desactivada correctamente.");
+            return Ok(new { message = "Empresa desactivada correctamente." });
         }
     }
 }

@@ -46,6 +46,7 @@ export class LayoutComponent implements OnInit {
       { id: '/pivot-tables', icon: 'pi-table', label: 'Tablas Dinámicas', route: '/pivot-tables', roles: ['Administrador TI'] }
     ]},
     { section: 'Administración', items: [
+      { id: '/empresas', icon: 'pi-building', label: 'Empresas y Sucursales', route: '/empresas', roles: ['Super Admin', 'Administrador TI'] },
       { id: '/users', icon: 'pi-users', label: 'Usuarios y Permisos', route: '/users', roles: ['Administrador TI'] },
       { id: '/n8n-config', icon: 'pi-sitemap', label: 'Integración n8n', route: '/n8n-config', roles: ['Administrador TI'] },
       { id: '/settings', icon: 'pi-cog', label: 'Ajustes del Sistema', route: '/settings', roles: ['Administrador TI'] }

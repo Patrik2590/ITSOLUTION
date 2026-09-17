@@ -39,6 +39,8 @@ export const routes: Routes = [
          loadComponent: () => import('./features/activos/activos.component').then(m => m.ActivosComponent) 
       },
 
+      { path: 'empresas', loadComponent: () => import('./features/empresas/empresas.component').then(m => m.EmpresasComponent) }
+
       // 💡 Ejemplo de cómo quedará la ruta de usuarios cuando la crees:
       // { 
       //   path: 'users', 

@@ -1,0 +1,289 @@
+<div class="h-full flex flex-col animate-fade-in">
+  
+  <!-- ==================== VISTA 1: TABLA LISTADO DE EMPRESAS ==================== -->
+  <ng-container *ngIf="vistaActual === 'lista'">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+          <i class="pi pi-building text-[#00f0ff]"></i> Gestión de Empresas (Tenants)
+        </h1>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Administración de clientes, sucursales y jerarquías del sistema</p>
+      </div>
+      <button (click)="abrirFormularioCreacion()" 
+              class="bg-blue-600 hover:bg-blue-500 dark:bg-cyan-900 dark:hover:bg-cyan-800 text-white dark:text-cyan-400 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-lg">
+        <i class="pi pi-plus"></i> Nueva Empresa
+      </button>
+    </div>
+
+    <div class="bg-white dark:bg-[#0A1018] border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden flex-1">
+      <div class="overflow-x-auto h-full">
+        <table class="w-full text-left border-collapse pb-24">
+          <thead>
+            <tr class="bg-gray-50 dark:bg-[#06090F] text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider border-b border-gray-200 dark:border-gray-800">
+              <th class="p-4 font-semibold">ID / RUC</th>
+              <th class="p-4 font-semibold">Razón Social</th>
+              <th class="p-4 font-semibold">Dominio (Tenant)</th>
+              <th class="p-4 font-semibold">Sucursales</th>
+              <th class="p-4 font-semibold">Estado</th>
+              <th class="p-4 font-semibold text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm divide-y divide-gray-200 dark:divide-gray-800 text-gray-700 dark:text-gray-300">
+            
+            <!-- 👇 MODIFICADO: Clic en la fila abre detalles de sucursales -->
+            <tr *ngFor="let empresa of empresas" 
+                (click)="abrirDetalleSucursales(empresa)"
+                class="hover:bg-blue-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
+              
+              <td class="p-4 font-mono text-xs font-bold text-blue-600 dark:text-[#00f0ff]">{{ empresa.ruc }}</td>
+              <td class="p-4 font-semibold text-gray-800 dark:text-white">{{ empresa.nombre }}</td>
+              <td class="p-4 text-xs">{{ empresa.dominio }}</td>
+              <td class="p-4 text-xs font-bold">{{ empresa.sucursalesCount }} sedes</td>
+              <td class="p-4">
+                <span class="px-2 py-1 text-[10px] font-bold rounded-full border"
+                      [ngClass]="empresa.estado === 'Activo' 
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800' 
+                        : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'">
+                  {{ empresa.estado }}
+                </span>
+              </td>
+              
+              <!-- Menú de configuración de la Empresa (Evita activar la fila) -->
+              <td class="p-4 text-center menu-acciones-container relative" (click)="$event.stopPropagation()">
+                <button (click)="toggleMenu(empresa.id, $event)" 
+                        class="p-2 text-gray-400 hover:text-blue-500 rounded-lg hover:bg-blue-50 dark:hover:bg-cyan-900/30 transition-colors" 
+                        title="Opciones">
+                  <i class="pi pi-cog text-lg"></i>
+                </button>
+
+                <div *ngIf="menuActivoId === empresa.id" class="absolute right-8 top-10 w-40 bg-white dark:bg-[#0A1018] border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 overflow-hidden animate-fade-in">
+                  <button (click)="abrirFormularioEdicion(empresa)" class="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-2">
+                    <i class="pi pi-pencil text-[#00f0ff]"></i> Editar Empresa
+                  </button>
+                  <div class="border-t border-gray-200 dark:border-gray-700"></div>
+                  <button (click)="eliminarEmpresa(empresa)" class="w-full text-left px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2">
+                    <i class="pi pi-trash"></i> {{ empresa.estado === 'Activo' ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="empresas.length === 0">
+              <td colspan="6" class="p-8 text-center text-gray-500 italic">No hay empresas registradas.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ==================== VISTA 2: DETALLE DE SUCURSALES (NUEVA VISTA) ==================== -->
+  <ng-container *ngIf="vistaActual === 'detalle-sucursales'">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
+          <button (click)="cancelar()" class="text-gray-500 hover:text-[#00f0ff] transition-colors">
+            <i class="pi pi-arrow-left"></i>
+          </button>
+          Sucursales de {{ empresaSeleccionadaDetalle?.nombre }}
+        </h1>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-9">Listado de sedes y puntos de atención</p>
+      </div>
+      <button (click)="abrirFormularioEdicion(empresaSeleccionadaDetalle)" 
+              class="bg-blue-600 hover:bg-blue-500 dark:bg-cyan-900 dark:hover:bg-cyan-800 text-white dark:text-cyan-400 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
+        <i class="pi pi-pencil"></i> Gestionar Sucursales
+      </button>
+    </div>
+
+    <div class="bg-white dark:bg-[#0A1018] border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden flex-1">
+      <div class="overflow-x-auto h-full">
+        <table class="w-full text-left border-collapse pb-24">
+          <thead>
+            <tr class="bg-gray-50 dark:bg-[#06090F] text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider border-b border-gray-200 dark:border-gray-800">
+              <th class="p-4 font-semibold w-12">#</th>
+              <th class="p-4 font-semibold">Código</th>
+              <th class="p-4 font-semibold">Nombre Sucursal</th>
+              <th class="p-4 font-semibold">Dirección</th>
+              <th class="p-4 font-semibold">Estado</th>
+              <th class="p-4 font-semibold text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm divide-y divide-gray-200 dark:divide-gray-800 text-gray-700 dark:text-gray-300">
+            <!-- Renderizamos solo si el objeto existe y filtramos internamente activas o permitimos ver inactivas con otro color -->
+            <ng-container *ngFor="let suc of empresaSeleccionadaDetalle?._raw?.sucursales || empresaSeleccionadaDetalle?._raw?.Sucursales; let i = index">
+              <tr class="hover:bg-blue-50 dark:hover:bg-gray-800/50 transition-colors">
+                <td class="p-4 font-mono text-xs text-gray-500">{{ i + 1 }}</td>
+                <td class="p-4 font-mono text-xs font-bold text-blue-600 dark:text-[#00f0ff]">{{ suc.codigo || suc.Codigo }}</td>
+                <td class="p-4 font-semibold text-gray-800 dark:text-white">{{ suc.nombre || suc.Nombre }}</td>
+                <td class="p-4 text-xs">{{ suc.direccion || suc.Direccion || 'Sin especificar' }}</td>
+                <td class="p-4">
+                  <span class="px-2 py-1 text-[10px] font-bold rounded-full border"
+                        [ngClass]="suc.estaActiva !== false && suc.EstaActiva !== false && suc.EstaActiva !== 0
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800' 
+                          : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'">
+                    {{ suc.estaActiva !== false && suc.EstaActiva !== false && suc.EstaActiva !== 0 ? 'Activa' : 'Inactiva' }}
+                  </span>
+                </td>
+                
+                <td class="p-4 text-center menu-acciones-container relative">
+                  <button (click)="toggleMenuSucursal(suc.id || suc.Id, i, $event)" 
+                          class="p-2 text-gray-400 hover:text-blue-500 rounded-lg hover:bg-blue-50 dark:hover:bg-cyan-900/30 transition-colors">
+                    <i class="pi pi-cog text-lg"></i>
+                  </button>
+
+                  <div *ngIf="menuSucursalActivoId === (suc.id || suc.Id || i)" class="absolute right-8 top-10 w-40 bg-white dark:bg-[#0A1018] border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 overflow-hidden animate-fade-in">
+                    <!-- En lugar de editar aquí individualmente, redirigimos al form principal para mantener tu lógica CRUD centralizada -->
+                    <button (click)="abrirFormularioEdicion(empresaSeleccionadaDetalle)" class="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-2">
+                      <i class="pi pi-pencil text-[#00f0ff]"></i> Modificar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+            <tr *ngIf="!(empresaSeleccionadaDetalle?._raw?.sucursales?.length || empresaSeleccionadaDetalle?._raw?.Sucursales?.length)">
+              <td colspan="6" class="p-8 text-center text-gray-500 italic">No hay sucursales para esta empresa.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ==================== VISTA 3: FORMULARIO MULTI-PASO (CREAR/EDITAR) ==================== -->
+  <ng-container *ngIf="vistaActual === 'formulario'">
+    <div class="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-800 pb-4">
+      <div>
+        <h1 class="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+          <i class="pi pi-sliders-h text-[#00f0ff]"></i> 
+          {{ modoFormulario === 'crear' ? 'Nueva Empresa' : 'Edición de Empresa' }}
+        </h1>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Configuración de tenant, sucursales y permisos de acceso</p>
+      </div>
+      <div class="flex gap-2">
+        <button (click)="cancelar()" class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
+          Cancelar
+        </button>
+        <button (click)="guardarEmpresaCompleta()" class="px-4 py-2 rounded-lg text-sm font-semibold bg-[#00f0ff] hover:bg-cyan-400 text-[#06090F] shadow-[0_0_15px_rgba(0,240,255,0.3)] transition-all flex items-center gap-2">
+          <i class="pi pi-save"></i> {{ modoFormulario === 'crear' ? 'Guardar Todo' : 'Actualizar Cambios' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Navegación por Sub-Pestañas -->
+    <div class="flex border-b border-gray-200 dark:border-gray-800 mb-6 gap-2">
+      <button (click)="tabFormulario = 'datos'" [ngClass]="tabFormulario === 'datos' ? 'border-[#00f0ff] text-[#00f0ff] font-bold' : 'border-transparent text-gray-500 hover:text-gray-300'" class="px-4 py-2 text-xs border-b-2 transition-all flex items-center gap-2">
+        <i class="pi pi-info-circle"></i> 1. Datos de la Empresa
+      </button>
+      <button (click)="tabFormulario = 'sucursales'" [ngClass]="tabFormulario === 'sucursales' ? 'border-[#00f0ff] text-[#00f0ff] font-bold' : 'border-transparent text-gray-500 hover:text-gray-300'" class="px-4 py-2 text-xs border-b-2 transition-all flex items-center gap-2">
+        <i class="pi pi-sitemap"></i> 2. Sucursales
+      </button>
+      <button (click)="tabFormulario = 'permisos'" [ngClass]="tabFormulario === 'permisos' ? 'border-[#00f0ff] text-[#00f0ff] font-bold' : 'border-transparent text-gray-500 hover:text-gray-300'" class="px-4 py-2 text-xs border-b-2 transition-all flex items-center gap-2">
+        <i class="pi pi-shield"></i> 3. Permisos (RBAC)
+      </button>
+    </div>
+
+    <!-- PESTAÑA 1: DATOS -->
+    <div *ngIf="tabFormulario === 'datos'" class="bg-white dark:bg-[#0A1018] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm flex-1">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Razón Social *</label>
+          <input type="text" [(ngModel)]="empresaForm.nombre" class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:border-[#00f0ff] focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">RUC *</label>
+          <input type="text" [(ngModel)]="empresaForm.ruc" [disabled]="modoFormulario === 'editar'" [ngClass]="{'opacity-50 cursor-not-allowed': modoFormulario === 'editar'}" class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:border-[#00f0ff] focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Dominio Tenant *</label>
+          <input type="text" [(ngModel)]="empresaForm.dominio" class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:border-[#00f0ff] focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Correo Electrónico</label>
+          <input type="email" [(ngModel)]="empresaForm.emailContacto" class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-800 dark:text-white focus:border-[#00f0ff] focus:outline-none">
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 2: SUCURSALES (CON FILTRO PARA LAS ACTIVAS) -->
+    <div *ngIf="tabFormulario === 'sucursales'" class="bg-white dark:bg-[#0A1018] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm flex-1 flex flex-col gap-6">
+      
+      <div class="bg-gray-50 dark:bg-[#06090F] p-4 rounded-lg border border-gray-200 dark:border-gray-800">
+        <h4 class="text-xs font-bold text-[#00f0ff] uppercase tracking-wider mb-3">Agregar Sucursal</h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <input type="text" [(ngModel)]="nuevaSucursal.codigo" placeholder="Código" class="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-800 dark:text-white">
+          <input type="text" [(ngModel)]="nuevaSucursal.nombre" placeholder="Nombre" class="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-800 dark:text-white">
+          <div class="flex gap-2">
+            <input type="text" [(ngModel)]="nuevaSucursal.direccion" placeholder="Dirección" class="w-full bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-800 dark:text-white">
+            <button (click)="agregarSucursal()" class="bg-[#00f0ff] text-[#06090F] px-4 rounded-lg font-bold text-xs hover:bg-cyan-400 transition-colors">Añadir</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto flex-1 border border-gray-200 dark:border-gray-800 rounded-lg">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-50 dark:bg-[#06090F] text-gray-500 text-xs uppercase border-b border-gray-200 dark:border-gray-800">
+              <th class="p-3">Código</th>
+              <th class="p-3">Nombre Sucursal</th>
+              <th class="p-3">Dirección</th>
+              <th class="p-3 text-center">Quitar</th>
+            </tr>
+          </thead>
+         <tbody class="text-xs divide-y divide-gray-200 dark:divide-gray-800">
+            <ng-container *ngFor="let suc of sucursales">
+              <tr *ngIf="suc.estaActiva !== false">
+                <td class="p-3 font-mono font-bold text-[#00f0ff]">{{ suc.codigo }}</td>
+                <td class="p-3 font-semibold">{{ suc.nombre }}</td>
+                <td class="p-3 text-gray-400">{{ suc.direccion }}</td>
+                <td class="p-3 text-center">
+                  <button (click)="eliminarSucursalEnFormulario(suc)" class="text-red-400 hover:text-red-600"><i class="pi pi-trash"></i></button>
+                </td>
+              </tr>
+            </ng-container>
+
+            <!-- Validamos con el getter en lugar del length -->
+            <tr *ngIf="!tieneSucursalesActivas">
+              <td colspan="4" class="p-6 text-center text-gray-500 italic bg-gray-50/50 dark:bg-gray-900/20">
+                No hay sucursales activas registradas para esta empresa.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 3: PERMISOS -->
+    <div *ngIf="tabFormulario === 'permisos'" class="bg-white dark:bg-[#0A1018] border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm flex-1">
+      <div class="mb-6">
+        <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-2">Rol a configurar *</label>
+        <select [(ngModel)]="rolSeleccionado" class="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-sm text-gray-800 dark:text-white focus:border-[#00f0ff] focus:outline-none w-full md:w-1/3">
+          <option value="Administrador TI">Administrador TI</option>
+          <option value="Soporte Técnico">Soporte Técnico</option>
+          <option value="Usuario Final">Usuario Final</option>
+        </select>
+      </div>
+
+      <div class="overflow-x-auto border border-gray-200 dark:border-gray-800 rounded-lg">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-50 dark:bg-[#06090F] text-gray-500 text-xs uppercase border-b border-gray-200 dark:border-gray-800">
+              <th class="p-4">Módulo del Sistema</th>
+              <th class="p-4 text-center">Ver</th>
+              <th class="p-4 text-center">Crear</th>
+              <th class="p-4 text-center">Editar</th>
+              <th class="p-4 text-center">Eliminar</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm divide-y divide-gray-200 dark:divide-gray-800">
+            <tr *ngFor="let permiso of matrizPermisos" class="hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors">
+              <td class="p-4 font-semibold text-gray-700 dark:text-gray-300">{{ permiso.modulo }}</td>
+              <td class="p-4 text-center"><input type="checkbox" [(ngModel)]="permiso.ver" class="accent-[#00f0ff] w-4 h-4 cursor-pointer"></td>
+              <td class="p-4 text-center"><input type="checkbox" [(ngModel)]="permiso.crear" class="accent-[#00f0ff] w-4 h-4 cursor-pointer"></td>
+              <td class="p-4 text-center"><input type="checkbox" [(ngModel)]="permiso.editar" class="accent-[#00f0ff] w-4 h-4 cursor-pointer"></td>
+              <td class="p-4 text-center"><input type="checkbox" [(ngModel)]="permiso.eliminar" class="accent-[#00f0ff] w-4 h-4 cursor-pointer"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+</div>

@@ -22,6 +22,9 @@ namespace ITSOLUTION.Domain.Entities
 
         public bool IsDeleted { get; set; } = false;
 
+        public string Dominio { get; set; } = string.Empty;
+        public string CorreoContacto { get; set; } = string.Empty;
+
         // 🔗 Navegación explícita (Relación 1 Empresa -> N Sucursales)
         public ICollection<Sucursal> Sucursales { get; set; } = new List<Sucursal>();
     }

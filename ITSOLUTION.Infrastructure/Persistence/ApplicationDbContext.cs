@@ -43,9 +43,12 @@ namespace ITSOLUTION.Infrastructure.Persistence
             modelBuilder.Entity<Ticket>().HasQueryFilter(t =>
                 t.TenantId == _currentUserService.TenantId && t.SucursalId == _currentUserService.SucursalId);
 
+
             // 🏢 NOTA SENIOR: Los roles pertenecen a la Empresa (Tenant), no a una sucursal específica.
             modelBuilder.Entity<Rol>().HasQueryFilter(r =>
                 r.TenantId == _currentUserService.TenantId);
+
+            modelBuilder.Entity<Tenant>().HasQueryFilter(t => !t.IsDeleted);
 
             // 🛑 2. DESACTIVAR EL BORRADO EN CASCADA GLOBALMENTE
             var cascadeFKs = modelBuilder.Model.GetEntityTypes()
